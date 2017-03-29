@@ -36,7 +36,9 @@ public abstract class Recurrence {
 		this.end = end;
 		this.name = name;
 		this.description = description;
-		this.daysOfWeekAllowed = daysOfWeekAllowed;	
+		if (daysOfWeekAllowed != null) {
+			this.daysOfWeekAllowed = daysOfWeekAllowed;	
+		}
 	}
 	
 	public Recurrence(HolidayCalendar holidayCalendar, ArrayList<String> configList) {

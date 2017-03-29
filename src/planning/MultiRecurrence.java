@@ -4,15 +4,13 @@ import java.util.ArrayList;
 import java.util.Calendar;
 
 public class MultiRecurrence extends Recurrence {
+	private ArrayList<Recurrence> recurrenceList;	
 	
-	public MultiRecurrence(RecurrencePeriod period, int step, RecurrenceShiftHandling weekend_handling,
-			Calendar begin, Calendar end, String name, String description) {
-		super(period, step, weekend_handling, begin, end, name, description);
+	public MultiRecurrence(HolidayCalendar holidayCalendar, 
+			Calendar begin, Calendar end, String name, String description) 
+	{
+		super(holidayCalendar, RecurrencePeriod.None, 1, RecurrenceShiftHandling.NoShift, begin, end, name, description, null);
 	}
-
-	private ArrayList<Recurrence> recurrenceList;
-
-	//TODO: this.period = RecurrencePeriod.none;
 	
 	@Override
 	public ArrayList<Calendar> next_items(Calendar c, int count) {
