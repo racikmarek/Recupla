@@ -1,5 +1,7 @@
 package planning;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Random;
@@ -7,6 +9,7 @@ import java.util.Random;
 public abstract class Recurrence {
 	private static int maxID = 1;
 	private static int randomShiftStep = 6;
+	private static final String DATE_FORMAT = "dd.MM.yyyy";
 	private Random rnd = new Random();
 	protected HolidayCalendar holidayCalendar;
 	protected int id;
@@ -36,20 +39,51 @@ public abstract class Recurrence {
 		this.daysOfWeekAllowed = daysOfWeekAllowed;	
 	}
 	
-	public Recurrence(HolidayCalendar holidayCalendar, String state) {
+	public Recurrence(HolidayCalendar holidayCalendar, ArrayList<String> configList) {
 		super();
 		this.holidayCalendar = holidayCalendar;
-		setState(state);
+		setConfig(configList);
 	}
 
-	public void setState(String state) {
-		//TODO
-		throw new UnsupportedOperationException();
+	public void setConfig(ArrayList<String> configList) {
+		SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
+		this.id = Integer.parseInt(configList.get(0));
+		this.period = RecurrencePeriod.valueOf(configList.get(1));
+		this.step = Integer.parseInt(configList.get(2));
+		this.shiftHandling = RecurrenceShiftHandling.valueOf(configList.get(3));
+		try {
+			this.begin = Calendar.getInstance();
+			this.begin.setTime(sdf.parse(configList.get(4)));
+			this.end = Calendar.getInstance();
+			this.end.setTime(sdf.parse(configList.get(5)));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		this.name = configList.get(6);
+		this.description = configList.get(7);
+		String daysOfWeekAllowedStr = configList.get(8);
+		for (int i = 0; i < daysOfWeekAllowedStr.length(); i++) {
+			this.daysOfWeekAllowed[i] = (daysOfWeekAllowedStr.charAt(i) == '1');
+		}
 	}
 	
-	public String getState() {
-		//TODO
-		throw new UnsupportedOperationException();
+	public ArrayList<String> getConfig() {
+		ArrayList<String> configList = new ArrayList<>();
+		SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
+		configList.add(Integer.toString(this.id));
+		configList.add(this.period.name());
+		configList.add(Integer.toString(this.step));
+		configList.add(this.shiftHandling.name());
+		configList.add(sdf.format(this.begin));
+		configList.add(sdf.format(this.end));
+		configList.add(this.name);
+		configList.add(this.description);
+		String daysOfWeekAllowedStr = "";
+		for (int i = 0; i < this.daysOfWeekAllowed.length; i++) {
+			daysOfWeekAllowedStr += (daysOfWeekAllowed[i] == true) ? '1' : '0';
+		}
+		configList.add(daysOfWeekAllowedStr);
+		return configList;
 	}
 	
 	public abstract ArrayList<Calendar> next_items(Calendar c, int count);
