@@ -5,9 +5,15 @@ import java.util.Calendar;
 
 public class MultiplicativeRecurrence extends Recurrence {
 
-	public MultiplicativeRecurrence(RecurrencePeriod period, int step, RecurrenceShiftHandling weekend_handling,
-			Calendar begin, Calendar end, String name, String description) {
-		super(period, step, weekend_handling, begin, end, name, description);
+	public MultiplicativeRecurrence(HolidayCalendar holidayCalendar, ArrayList<String> configList) {
+		super(holidayCalendar, configList);
+	}
+
+	public MultiplicativeRecurrence(HolidayCalendar holidayCalendar, RecurrencePeriod period, int step,
+			RecurrenceShiftHandling shiftHandling, Calendar begin, Calendar end, String name, String description,
+			boolean[] daysOfWeekAllowed) 
+	{
+		super(holidayCalendar, period, step, shiftHandling, begin, end, name, description, daysOfWeekAllowed);
 	}
 
 	@Override

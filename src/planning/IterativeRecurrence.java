@@ -5,10 +5,15 @@ import java.util.Calendar;
 
 public class IterativeRecurrence extends Recurrence {
 
-	public IterativeRecurrence(RecurrencePeriod period, int step, RecurrenceShiftHandling weekend_handling,
-			Calendar begin, Calendar end, String name, String description) {
-		super(period, step, weekend_handling, begin, end, name, description);
-		// TODO Auto-generated constructor stub
+	public IterativeRecurrence(HolidayCalendar holidayCalendar, ArrayList<String> configList) {
+		super(holidayCalendar, configList);
+	}
+
+	public IterativeRecurrence(HolidayCalendar holidayCalendar, RecurrencePeriod period, int step,
+			RecurrenceShiftHandling shiftHandling, Calendar begin, Calendar end, String name, String description,
+			boolean[] daysOfWeekAllowed) 
+	{
+		super(holidayCalendar, period, step, shiftHandling, begin, end, name, description, daysOfWeekAllowed);
 	}
 
 	@Override
@@ -20,7 +25,6 @@ public class IterativeRecurrence extends Recurrence {
 	@Override
 	protected void runCaching(Calendar c) {
 		// TODO Auto-generated method stub
-		
 	}
 
 }

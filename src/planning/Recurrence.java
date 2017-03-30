@@ -7,10 +7,23 @@ import java.util.Calendar;
 import java.util.Random;
 
 public abstract class Recurrence {
-	private static int maxID = 1;
-	private static int randomShiftStep = 6;
-	private static final String DATE_FORMAT = "dd.MM.yyyy";
-	private Random rnd = new Random();
+	//constants
+	public static final String DATE_FORMAT = "dd.MM.yyyy";
+	public static final String RECORD_DELIMITER = ",";
+	private static final int RANDOM_SHIFT_STEP = 6;
+	//initialization of constants from configuration file
+	static {
+		try {
+			//TODO
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(Recurrence.class.getName() + " class could not be initialized.", e);
+		}
+	}
+	//global configuration
+	private static int maxID = 0;
+	//recurrence attributes
 	protected HolidayCalendar holidayCalendar;
 	protected int id;
 	protected boolean cacheEnabled = false; 
@@ -23,33 +36,22 @@ public abstract class Recurrence {
 	protected String name;
 	protected String description;
 	protected boolean[] daysOfWeekAllowed = {true, true, true, true, true, true, true}; //first = Sunday; last = Saturday
-
-	public Recurrence(HolidayCalendar holidayCalendar, RecurrencePeriod period, int step, RecurrenceShiftHandling shiftHandling, 
-			Calendar begin, Calendar end, String name, String description, boolean[] daysOfWeekAllowed) {
-		super();
-		this.holidayCalendar = holidayCalendar;
-		this.id = maxID++; 
-		this.period = period;
-		this.step = step;
-		this.shiftHandling = shiftHandling;
-		this.begin = begin;
-		this.end = end;
-		this.name = name;
-		this.description = description;
-		if (daysOfWeekAllowed != null) {
-			this.daysOfWeekAllowed = daysOfWeekAllowed;	
-		}
-	}
+	protected boolean allowWeekend;
+	protected boolean allowHoliday;
+	protected ArrayList<Calendar> excludedDays;
 	
 	public Recurrence(HolidayCalendar holidayCalendar, ArrayList<String> configList) {
 		super();
 		this.holidayCalendar = holidayCalendar;
+		this.excludedDays = new ArrayList<Calendar>();
 		setConfig(configList);
 	}
 
 	public void setConfig(ArrayList<String> configList) {
 		SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
-		this.id = Integer.parseInt(configList.get(0));
+		String inputId = configList.get(0);
+		this.id = (inputId.isEmpty()) ? ++Recurrence.maxID : Integer.parseInt(inputId);
+		Recurrence.maxID = Math.max(Recurrence.maxID, this.id);
 		this.period = RecurrencePeriod.valueOf(configList.get(1));
 		this.step = Integer.parseInt(configList.get(2));
 		this.shiftHandling = RecurrenceShiftHandling.valueOf(configList.get(3));
@@ -66,6 +68,19 @@ public abstract class Recurrence {
 		String daysOfWeekAllowedStr = configList.get(8);
 		for (int i = 0; i < daysOfWeekAllowedStr.length(); i++) {
 			this.daysOfWeekAllowed[i] = (daysOfWeekAllowedStr.charAt(i) == '1');
+		}
+		this.allowWeekend = configList.get(9) == "1" ? true : false;
+		this.allowHoliday = configList.get(10) == "1" ? true : false;
+		
+		String[] excludedDaysStrs = configList.get(11).split(RECORD_DELIMITER);
+		for (int i = 0; i < excludedDaysStrs.length; i++) {
+			Calendar cal = Calendar.getInstance();
+			try {
+				cal.setTime(sdf.parse(excludedDaysStrs[i]));
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			this.excludedDays.add(cal);
 		}
 	}
 	
@@ -85,10 +100,19 @@ public abstract class Recurrence {
 			daysOfWeekAllowedStr += (daysOfWeekAllowed[i] == true) ? '1' : '0';
 		}
 		configList.add(daysOfWeekAllowedStr);
+		configList.add(allowWeekend ? "1" : "0");
+		configList.add(allowHoliday ? "1" : "0");
+		String excludedDaysStr = "";
+		for (Calendar excludedDay: this.excludedDays) {
+			excludedDaysStr = excludedDaysStr.isEmpty() ? "" : RECORD_DELIMITER;
+			sdf.format(excludedDay);
+		}
+		configList.add(excludedDaysStr);
 		return configList;
 	}
 	
 	public abstract ArrayList<Calendar> next_items(Calendar c, int count);
+	
 	protected Calendar normalize(Calendar c) {
 		Calendar result = Calendar.getInstance();
 		result.setTime(c.getTime());
@@ -143,15 +167,18 @@ public abstract class Recurrence {
 	private Calendar applyShiftStep(Calendar c) {
 		Calendar result = Calendar.getInstance();
 		result.setTime(c.getTime());
+		Random rnd;
 		switch (shiftHandling) {
 			case Before: 
 				result.add(Calendar.DAY_OF_MONTH, -1); break;
 			case BeforeRNDWD: 
-				result.add(Calendar.DAY_OF_MONTH, -(rnd.nextInt(randomShiftStep)+1)); break;
+				rnd = new Random();
+				result.add(Calendar.DAY_OF_MONTH, -(rnd.nextInt(RANDOM_SHIFT_STEP)+1)); break;
 			case After: 
 				result.add(Calendar.DAY_OF_MONTH, +1); break;
 			case AfterRNDWD:
-				result.add(Calendar.DAY_OF_MONTH, +(rnd.nextInt(randomShiftStep)+1)); break;
+				rnd = new Random();
+				result.add(Calendar.DAY_OF_MONTH, +(rnd.nextInt(RANDOM_SHIFT_STEP)+1)); break;
 			default: return result;
 		}
 		return result;
@@ -262,6 +289,30 @@ public abstract class Recurrence {
 
 	public void setDaysOfWeekAllowed(boolean[] daysOfWeekAllowed) {
 		this.daysOfWeekAllowed = daysOfWeekAllowed;
+	}
+
+	public boolean isAllowWeekend() {
+		return allowWeekend;
+	}
+
+	public void setAllowWeekend(boolean allowWeekend) {
+		this.allowWeekend = allowWeekend;
+	}
+
+	public boolean isAllowHoliday() {
+		return allowHoliday;
+	}
+
+	public void setAllowHoliday(boolean allowHoliday) {
+		this.allowHoliday = allowHoliday;
+	}
+
+	public ArrayList<Calendar> getExcludedDays() {
+		return excludedDays;
+	}
+
+	public void setExcludedDays(ArrayList<Calendar> excludedDays) {
+		this.excludedDays = excludedDays;
 	}
 	
 }

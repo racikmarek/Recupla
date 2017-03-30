@@ -13,8 +13,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class MultiplicativeRecurrenceTest {
-	private static final String date_format_1 = "dd/MM/yyyy";
-	private static final String date_format_2 = "dd.MM.yyyy";
+	private static final String date_format = Recurrence.DATE_FORMAT;
 	private static final String testFilePath = "tests/recurrence_tests.csv";
 	private static final String csvDelimiter = ";";
 	private static final String listItemDelimiter = ", ";
@@ -23,6 +22,26 @@ public class MultiplicativeRecurrenceTest {
 	private static final String exceptNone = "";
 	private static final String replanMethod = "Multiplicative";
 	private static ArrayList<RecurrenceTestCase> testCases;
+	
+	//TODO change configuration of tests according to attributes of Recurrence class
+	
+	private ArrayList<String> loadRecurrenceConfig(String[] recDef) {				
+		ArrayList<String> recurrenceConfig = new ArrayList<>();
+		recurrenceConfig.add(id)
+		
+		Calendar begin = Calendar.getInstance();
+		begin.setTime(sdf.parse(recDef[8]));
+		Calendar end = Calendar.getInstance();
+		end.setTime(sdf.parse(recDef[10]));
+		
+		RecurrencePeriod period = RecurrencePeriod.valueOf(recDef[3]);
+		int step = Integer.parseInt(recDef[5]);
+		
+		RecurrenceShiftHandling weekend_handling = RecurrenceShiftHandling.valueOf(recDef[7]);
+				
+		
+		return recurrenceConfig;
+	}
 	
 	private ArrayList<RecurrenceTestCase> getTestCases() throws ParseException {
 		ArrayList<RecurrenceTestCase> result = new ArrayList<RecurrenceTestCase>();
@@ -35,17 +54,11 @@ public class MultiplicativeRecurrenceTest {
 				if (!recDef[4].equals(replanMethod)) {
 					continue;
 				}
-				SimpleDateFormat sdf = new SimpleDateFormat(date_format_1);
+				SimpleDateFormat sdf = new SimpleDateFormat(date_format);
 				
-				RecurrencePeriod period = RecurrencePeriod.valueOf(recDef[3]);
-				int step = Integer.parseInt(recDef[5]);
-				
-				RecurrenceShiftHandling weekend_handling = RecurrenceShiftHandling.valueOf(recDef[7]);
-				
-				Calendar begin = Calendar.getInstance();
-				begin.setTime(sdf.parse(recDef[8]));
-				Calendar end = Calendar.getInstance();
-				end.setTime(sdf.parse(recDef[10]));
+				//TODO call load recurrence config
+
+
 				
 				String name = recDef[1];
 				String description = "";
@@ -62,7 +75,7 @@ public class MultiplicativeRecurrenceTest {
 				
 				int occurence = Integer.parseInt(recDef[6]);
 				
-				sdf = new SimpleDateFormat(date_format_2);
+				sdf = new SimpleDateFormat(date_format);
 				String holidays = recDef[9];
 				if (holidays.length() > 2) {
 					holidays = holidays.substring(1, holidays.length() - 1);
@@ -70,7 +83,7 @@ public class MultiplicativeRecurrenceTest {
 					for (int i = 1; i < holidayDates.length; i++) {
 						hc.add(sdf.parse(holidayDates[i]));
 					}
-				}
+				}			
 				
 				MultiplicativeRecurrence r = null;
 				if (exception == exceptCreation) {
